@@ -1,0 +1,10 @@
+# Environment and secrets
+.env
+*.env
+
+# PowerShell temp files
+*.ps1xml
+
+# OS files
+Thumbs.db
+.DS_Store
