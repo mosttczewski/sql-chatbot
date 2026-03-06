@@ -5,15 +5,20 @@ $connParams = @{
 }
 $apiKey = $env:ANTHROPIC_API_KEY
 $schema = "Table: Movies, Columns: movie_id (int), title (nvarchar), genre (nvarchar), release_year (int), director (nvarchar), rating (decimal), runtime (int)"
-
+Write-Host "Welcome! This chatbot works only for data selection. If you want to exit the chat, just type 'exit'" -ForegroundColor Cyan
+Write-Host "---------------------" -ForegroundColor Cyan
     while($true){
-        $userQuestion = Read-Host "You" 
+        $userQuestion = Read-Host "You"
+            if ($userQuestion.Trim() -eq ""){
+                continue
+            } 
             if ($userQuestion -eq "exit"){
                 break
             }
+
             #else
 
-                $prompt = "You are a T-SQL expert. Convert the following question to a T-SQL query using these schema: $schema, ONLY the raw SQL query, no explanation, no markdown, no backticks. Here is the question: $userQuestion.If the question is not related to movies or the database, return exactly this text and nothing else: NOT_A_DB_QUERY"
+                $prompt = "You are a T-SQL expert. Convert the following question to a T-SQL query using these schema: $schema, ONLY the raw SQL query, no explanation, no markdown, no backticks. Here is the question: $userQuestion. User might type in any language but the T-SQL query should always be valid to SQL language. If the question is not related to movies or the database, return exactly this text and nothing else: NOT_A_DB_QUERY"
 
                 $body = @{
                     model = "claude-haiku-4-5-20251001"
@@ -34,7 +39,7 @@ $schema = "Table: Movies, Columns: movie_id (int), title (nvarchar), genre (nvar
                     } -Body $body
 
                 $sql = $response.content[0].text
-                Write-Host "Generated SQL: $sql"
+                Write-Host "Generated SQL: $sql" -ForegroundColor Yellow
                 if ($sql.TrimStart().ToUpper().StartsWith("SELECT")) {
                     $results = Invoke-Sqlcmd @connParams -Query $sql
                     $results | Format-Table
