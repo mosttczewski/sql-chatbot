@@ -13,7 +13,7 @@ $schema = "Table: Movies, Columns: movie_id (int), title (nvarchar), genre (nvar
             }
             #else
 
-                $prompt = "You are a T-SQL expert. Convert the following question to a T-SQL query using these schema: $schema, ONLY the raw SQL query, no explanation, no markdown, no backticks. Here is the question: $userQuestion"
+                $prompt = "You are a T-SQL expert. Convert the following question to a T-SQL query using these schema: $schema, ONLY the raw SQL query, no explanation, no markdown, no backticks. Here is the question: $userQuestion.If the question is not related to movies or the database, return exactly this text and nothing else: NOT_A_DB_QUERY"
 
                 $body = @{
                     model = "claude-haiku-4-5-20251001"
@@ -35,7 +35,17 @@ $schema = "Table: Movies, Columns: movie_id (int), title (nvarchar), genre (nvar
 
                 $sql = $response.content[0].text
                 Write-Host "Generated SQL: $sql"
-                $results = Invoke-Sqlcmd @connParams -Query $sql
-                $results | Format-Table
+                if ($sql.TrimStart().ToUpper().StartsWith("SELECT")) {
+                    $results = Invoke-Sqlcmd @connParams -Query $sql
+                    $results | Format-Table
+                }
+                elseif ($sql.Trim() -eq "NOT_A_DB_QUERY") {
+                    Write-Host "Sorry, I can only answer questions about the movies database" -ForegroundColor Red
+                }
+                else {
+                    Write-Host "Sorry, I can only run SELECT queries." -ForegroundColor Red
+                }
+
+
             
     }
